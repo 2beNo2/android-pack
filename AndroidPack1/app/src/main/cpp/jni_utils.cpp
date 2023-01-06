@@ -8,7 +8,6 @@
 #include <jni.h>
 
 #include "jni_utils.h"
-#include "log.h"
 
 
 JNIEnv *jni_get_jnienv(JavaVM* vm, int *attach)
