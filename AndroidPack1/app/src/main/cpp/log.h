@@ -2,8 +2,8 @@
 // Created by huangchen on 2023/1/6.
 //
 
-#ifndef ANDROIDPACK1_LOG_H
-#define ANDROIDPACK1_LOG_H
+#ifndef ANDROIDPACK_LOG_H
+#define ANDROIDPACK_LOG_H
 
 #include <android/log.h>
 
@@ -23,4 +23,4 @@
 
 #define JNIHIDE  __attribute__ ((visibility ("hidden")))
 
-#endif //ANDROIDPACK1_LOG_H
+#endif //ANDROIDPACK_LOG_H

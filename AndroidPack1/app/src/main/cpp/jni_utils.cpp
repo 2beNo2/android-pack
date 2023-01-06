@@ -10,7 +10,7 @@
 #include "jni_utils.h"
 
 
-JNIEnv *jni_get_jnienv(JavaVM* vm, int *attach)
+JNIHIDE JNIEnv *jni_get_jnienv(JavaVM* vm, int *attach)
 {
     JNIEnv* env = nullptr;
     int status = 0;
@@ -31,12 +31,12 @@ JNIEnv *jni_get_jnienv(JavaVM* vm, int *attach)
     return env;
 }
 
-void jni_del_jnienv(JavaVM* vm)
+JNIHIDE void jni_del_jnienv(JavaVM* vm)
 {
     vm->DetachCurrentThread();
 }
 
-jobject jni_get_application_object(JavaVM *vm)
+JNIHIDE jobject jni_get_application_object(JavaVM *vm)
 {
     int attach = 0;
     jvalue result = {0};
