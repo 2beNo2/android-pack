@@ -26,6 +26,7 @@ JNIHIDE void replace_application(JNIEnv *env, jobject thiz)
 {
     int ret = -1;
     jvalue result = {0};
+    jvalue value_set = {0};
 
     ret = jni_call_method(&result, env, thiz, "android/content/ContextWrapper",
                           "getApplicationInfo", "()Landroid/content/pm/ApplicationInfo;");
@@ -37,7 +38,6 @@ JNIHIDE void replace_application(JNIEnv *env, jobject thiz)
     LOGD("[%s] jni_call_method->getApplicationInfo Ok, objApplicationInfo:%p", __FUNCTION__, objApplicationInfo);
 
     jobject objClassName = env->NewStringUTF("org.test.dest.DestApp");
-    jvalue value_set = {0};
     value_set.l = objClassName;
     ret = jni_set_field(env, objApplicationInfo, "android/content/pm/ApplicationInfo","className", "Ljava/lang/String;", value_set);
     if(0 > ret){
@@ -106,7 +106,13 @@ JNIHIDE void replace_application(JNIEnv *env, jobject thiz)
     }
     LOGD("[%s] jni_call_method->onCreate ok", __FUNCTION__);
 
-    return;
+    //释放对象引用
+    env->DeleteLocalRef(objApplicationInfo);
+    env->DeleteLocalRef(objClassName);
+    env->DeleteLocalRef(objLoadedApk);
+    env->DeleteLocalRef(objActivityThread);
+    env->DeleteLocalRef(objAllApplications);
+    env->DeleteLocalRef(objNewApp);
 }
 
 
