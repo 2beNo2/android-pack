@@ -10,11 +10,11 @@
 static jobject g_ObjContext;
 
 JNIHIDE void JNICALL MyApp_onCreate(JNIEnv *env, jobject thiz);
-JNIHIDE void JNICALL MyApp_attachBaseContext(JNIEnv *env, jobject thiz, jobject base);
+JNIHIDE void JNICALL MyApp_attachBaseContext(JNIEnv *env, jobject thiz, jobject objContext);
 
 JNIHIDE JNINativeMethod g_Methods[] = {
-        "attachBaseContext", "(Landroid/content/Context;)V", (void*)&MyApp_attachBaseContext,
-        "onCreate", "()V", (void*)&MyApp_onCreate,
+"attachBaseContext", "(Landroid/content/Context;)V", (void*)&MyApp_attachBaseContext,
+"onCreate", "()V", (void*)&MyApp_onCreate,
 };
 
 
@@ -28,6 +28,7 @@ JNIEXPORT jint JNI_OnLoad(JavaVM* vm, void* reserved)
     }
     LOGD("[%s] env:%p", __FUNCTION__, env);
 
+    //动态注册
     jclass clsMyApp =  env->FindClass("org/test/androidpack1/MyApp");
     if (env->ExceptionCheck()) {
         env->ExceptionDescribe();
@@ -47,9 +48,30 @@ JNIEXPORT jint JNI_OnLoad(JavaVM* vm, void* reserved)
 }
 
 
+JNIHIDE void JNICALL MyApp_attachBaseContext(JNIEnv *env, jobject thiz, jobject objContext)
+{
+    int ret = -1;
+    jvalue result = {0};
+
+    ret = jni_call_novirtual_method(&result, env, thiz, "android/app/Application",
+                                    "attachBaseContext", "(Landroid/content/Context;)V", objContext);
+    if(0 > ret){
+        LOGE("[%s] super.attachBaseContext() Errors", __FUNCTION__);
+        return;
+    }
+    LOGD("[%s] super.attachBaseContext() Ok", __FUNCTION__);
+
+    g_ObjContext = env->NewGlobalRef(objContext);
+
+    //动态加载dex文件，并替换classLoader
+    if(pack_android_pack01_replace_classLoader(env, thiz, objContext) < 0){
+        return;
+    }
+}
+
+
 JNIHIDE void JNICALL MyApp_onCreate(JNIEnv *env, jobject thiz)
 {
-    // TODO: implement onCreate()
     int ret = -1;
     jvalue result = {0};
     ret = jni_call_novirtual_method(&result, env, thiz,"android/app/Application","onCreate","()V");
@@ -60,32 +82,11 @@ JNIHIDE void JNICALL MyApp_onCreate(JNIEnv *env, jobject thiz)
     LOGD("[%s] super.onCreate() Ok", __FUNCTION__);
 
     //调用被加壳dex的Application的初始化方法 attachBaseContext、onCreate
-    replace_application(env, thiz, g_ObjContext);
-
+    if(pack_replace_application(env, thiz, g_ObjContext) < 0){
+        return;
+    }
     LOGD("[%s] Application.onCreate() over", __FUNCTION__);
 }
 
-
-JNIHIDE void JNICALL MyApp_attachBaseContext(JNIEnv *env, jobject thiz, jobject base)
-{
-    // TODO: implement attachBaseContext()
-    int ret = -1;
-    jvalue result = {0};
-
-    ret = jni_call_novirtual_method(&result, env, thiz,
-                                    "android/app/Application",
-                                    "attachBaseContext",
-                                    "(Landroid/content/Context;)V", base);
-    if(0 > ret){
-        LOGE("[%s] super.attachBaseContext() Errors", __FUNCTION__);
-        return;
-    }
-    LOGD("[%s] super.attachBaseContext() Ok", __FUNCTION__);
-
-    g_ObjContext = env->NewGlobalRef(base);
-
-    //动态加载dex文件，并替换classLoader
-    replace_classloder(env, thiz, base);
-}
 
 

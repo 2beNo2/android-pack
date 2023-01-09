@@ -7,8 +7,8 @@
 
 #include "log.h"
 
-JNIHIDE void replace_application(JNIEnv *env, jobject thiz, jobject objContext);
-JNIHIDE void replace_classloder(JNIEnv *env, jobject thiz, jobject base);
+JNIHIDE int pack_android_pack01_replace_classLoader(JNIEnv *env, jobject thiz, jobject objContext);
+JNIHIDE int pack_replace_application(JNIEnv *env, jobject thiz, jobject objContext);
 
 
 #endif //ANDROIDPACK_UTILS_H
