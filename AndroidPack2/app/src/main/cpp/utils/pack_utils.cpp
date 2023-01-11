@@ -28,11 +28,20 @@ static int SDK_INT = -1;
 
 
 typedef void* (*OPEN_MEMORY_21)(const void* base,
-                             size_t size,
-                             const std::string& location,
-                             uint32_t location_checksum,
-                             void* mem_map,
-                             std::string* error_msg);
+                                 size_t size,
+                                 const std::string& location,
+                                 uint32_t location_checksum,
+                                 void* mem_map,
+                                 std::string* error_msg);
+
+typedef void* (*OPEN_MEMORY_23)(const void* base,
+                                size_t size,
+                                const std::string& location,
+                                uint32_t location_checksum,
+                                void* mem_map,
+                                const void* oat_dex_file,
+                                std::string* error_msg);
+
 
 static int pack_get_needed_path(JNIEnv *env, jobject thiz)
 {
@@ -372,6 +381,37 @@ static jlong pack_load_dex_21(void *base)
     return (jlong)dex_files;
 }
 
+static jobject pack_load_dex_23(void *base)
+{
+    DexHeader *pDexHeader = nullptr;
+    OPEN_MEMORY_23 openMemory = nullptr;
+    void* dexFile = nullptr;
+
+    //获取OpenMemory的函数地址
+    //7.0以后就不能使用dlopen了
+    void* handle = dlopen("libart.so", RTLD_NOW);
+    if (nullptr == handle) {
+        LOGE("[%s] dlopen libart.so Error:%s", __FUNCTION__, dlerror());
+        return nullptr;
+    }
+    LOGD("[%s] libart.so handle:%p", __FUNCTION__, handle);
+
+    openMemory = (OPEN_MEMORY_23)dlsym(handle, "_ZN3art7DexFile10OpenMemoryEPKhmRKNSt3__112basic_stringIcNS3_11char_traitsIcEENS3_9allocatorIcEEEEjPNS_6MemMapEPKNS_10OatDexFileEPS9_");
+    if (nullptr == openMemory) {
+        LOGE("[%s] dlsym openMemory Error:%s", __FUNCTION__, dlerror());
+        return nullptr;
+    }
+    LOGD("[%s] openMemory addr:%p", __FUNCTION__, openMemory);
+
+    //调用OpenMemory 加载dex到虚拟机
+    std::string location("");
+    pDexHeader = (DexHeader*)base;
+    dexFile = (*openMemory)(base, pDexHeader->fileSize, location, pDexHeader->checksum, nullptr, nullptr, nullptr);
+    LOGD("[%s] openMemory dexFile:%p", __FUNCTION__, dexFile);
+
+    return (jobject)dexFile;
+}
+
 static int pack_replace_mCookie_impl(JNIEnv *env, jobject objContext, jvalue mCookie)
 {
     int ret = -1;
@@ -439,7 +479,14 @@ static int pack_replace_mCookie_impl(JNIEnv *env, jobject objContext, jvalue mCo
     LOGD("[%s] jni_get_field->dexFile Ok objDexFile:%p", __FUNCTION__, objDexFile);
 
     //修改mCookie
-    ret = jni_set_field(env, objDexFile, "dalvik/system/DexFile", "mCookie", "J", mCookie);
+    switch (SDK_INT) {
+        case 21:
+            ret = jni_set_field(env, objDexFile, "dalvik/system/DexFile", "mCookie", "J", mCookie);
+            break;
+        default:
+            break;
+    }
+
     if(0 > ret){
         LOGE("[%s] jni_set_field->mCookie Errors", __FUNCTION__);
         return -1;
@@ -460,7 +507,8 @@ static int pack_replace_mCookie_impl(JNIEnv *env, jobject objContext, jvalue mCo
 int pack_android_pack02_replace_mCookie(JNIEnv *env, jobject thiz, jobject objContext)
 {
     void *dexAddr = nullptr;
-    jlong mCookie_jlong = 0;
+    jlong mCookie_jlong = 0; //5.0
+    jobject mCookie_jobject = nullptr; // SDK_INIT > 5.0
     jvalue value = {0};
 
     //映射dex文件到内存
@@ -486,8 +534,11 @@ int pack_android_pack02_replace_mCookie(JNIEnv *env, jobject thiz, jobject objCo
             value.j = mCookie_jlong;
             break;
         }
-        case 24:
+        case 23:
+            mCookie_jobject = pack_load_dex_23(dexAddr);
+            value.l = mCookie_jobject;
             break;
+
         default:
             break;
     }
