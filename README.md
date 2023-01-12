@@ -20,4 +20,15 @@
   - 解决办法：
     - 避免内存dump，破坏dex文件在内存中的完整性
 
-
+## AndroidPack3: 
+  - Android的第三代壳
+  - 缓解了二代壳中的内存dump问题，即破坏dex文件在内存中的完整性
+  - 大致实现思路：
+    - 抽取目标函数的`codeItem`，将其额外保存
+    - 禁用art虚拟机的`dex2oat`优化流程，主要hook`execve`方法实现
+    - hook虚拟机的`LoadMethod`方法，在函数调用时将`codeItem`修复
+  - 缺点：
+    - 仍然无法完全解决内存dump的问题
+    - 因dex字节码最终还是要交给art虚拟机解析执行，修改系统源码即可还原dex字节码
+  - 解决办法：
+    - 自实现art虚拟机，强迫逆向者逆向native层代码
