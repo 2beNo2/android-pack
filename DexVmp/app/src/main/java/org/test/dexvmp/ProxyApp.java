@@ -9,4 +9,5 @@ public class ProxyApp extends Application {
     }
 
     public static native int interface1(Object[] args);
+    public static native void interface2(Object[] args);
 }

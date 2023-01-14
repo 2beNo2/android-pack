@@ -9,7 +9,21 @@
 
 #include "jni_utils.h"
 
+static JavaVM* g_VM = nullptr;
 
+void jni_save_JavaVM(JavaVM* vm)
+{
+    if(vm == nullptr){
+        LOGW("[%s] jni_save_JavaVM Erros", __FUNCTION__);
+        return;
+    }
+    g_VM = vm;
+}
+
+JavaVM* jni_get_JavaVM()
+{
+    return g_VM;
+}
 
 JNIEnv *jni_get_jnienv(JavaVM* vm, int *attach)
 {

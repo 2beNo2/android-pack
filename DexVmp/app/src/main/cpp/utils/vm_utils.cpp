@@ -4,30 +4,7 @@
 #include <string>
 
 #include "vm_utils.h"
-
-
-struct vm_Context;
-
-typedef unsigned char u1;
-typedef int(*HANDLER)(vm_Context *);
-
-struct vm_Context{
-    u1* pc;
-    u1* pc_end;
-    uint32_t *v_regs;
-    jvalue ret_value;
-    bool is_exit;
-};
-
-struct CodeItem{
-    uint16_t registers_size_;
-    uint16_t ins_size_;
-    uint16_t outs_size_;
-    uint16_t tries_size_;
-    uint32_t debug_info_off_;
-    uint32_t insns_size_in_code_units_;
-    uint16_t insns_[1];
-};
+#include "vm_core.h"
 
 JNIHIDE unsigned char add_codeItem[22] = {
         0x04, 0x00, //registers_size_
@@ -44,14 +21,16 @@ JNIHIDE unsigned char add_codeItem[22] = {
 };
 
 
-unsigned char onCreate_codeItem[112] = {
+JNIHIDE unsigned char onCreate_codeItem[112] = {
         0x06, 0x00, //registers_size_
         0x02, 0x00, //ins_size_
         0x03, 0x00, //outs_size_
         0x00, 0x00, //tries_size_
         0xDA, 0x04, 0x00, 0x00,   //debug_info_off_
         0x30, 0x00, 0x00, 0x00, //insns_size_in_code_units_
-        0x6F, 0x20, 0x03, 0x00, 0x54, 0x00,
+
+        0x02, 0x20, 0x03, 0x00, 0x54, 0x00,
+        // 0x6f -> 0x02
         0x14, 0x00, 0x1C, 0x00, 0x0B, 0x7F,
         0x6E, 0x20, 0x12, 0x00,0x04, 0x00,
         0x14, 0x00, 0xB0, 0x01, 0x08, 0x7F,
@@ -101,49 +80,6 @@ unsigned char onCreate_codeItem[112] = {
     00000492: 0e00                    002f: return-void
 .end method
  * */
-
-
-int vm_add(vm_Context *ctx)
-{
-    /*
-     * 90..af 23x	binop vAA, vBB, vCC
-     *        23x	op vAA, vBB, vCC
-     *              AA|op CC|BB
-     * 0x90, 0x00, 0x02, 0x03, //add-int v0, p1, p2
-     * */
-    u1 vAA = *ctx->pc++;
-    u1 vBB = *ctx->pc++;
-    u1 vCC = *ctx->pc++;
-
-    ctx->v_regs[vAA] = ctx->v_regs[vBB] + ctx->v_regs[vCC];
-    LOGD("[%s] %d+%d=%d", __FUNCTION__ , ctx->v_regs[vBB], ctx->v_regs[vCC], ctx->v_regs[vAA]);
-
-    return 0;
-}
-
-
-int vm_ret_int(vm_Context *ctx)
-{
-    /*
-     * 0f 11x	return vAA
-     *    11x	op vAA
-     *          AA|op
-     * 0x0F, 0x00 //return v0
-     * */
-    u1 vAA = *ctx->pc++;
-
-    ctx->ret_value.i = ctx->v_regs[vAA];
-    ctx->is_exit = true;
-    LOGD("[%s] result:%d", __FUNCTION__ , ctx->ret_value.i);
-
-    return 0;
-}
-
-
-JNIHIDE HANDLER vm_handlers[] = {
-        &vm_add,
-        &vm_ret_int,
-};
 
 
 static int vm_Init(JNIEnv *env, jclass clazz, jobjectArray args, vm_Context* ctx)
@@ -196,8 +132,8 @@ static int vm_Init(JNIEnv *env, jclass clazz, jobjectArray args, vm_Context* ctx
     CodeItem* codeItem = nullptr;
     if(method_index == 0){
         codeItem = (CodeItem* )add_codeItem;
-    } else{
-        codeItem = (CodeItem* )add_codeItem;
+    } else if(method_index == 1){
+        codeItem = (CodeItem* )onCreate_codeItem;
     }
 
     ctx->pc = reinterpret_cast<u1 *>(codeItem->insns_);
@@ -250,20 +186,15 @@ static int vm_Init(JNIEnv *env, jclass clazz, jobjectArray args, vm_Context* ctx
     return 0;
 }
 
-
 static void vm_Loop(vm_Context* ctx)
 {
     //取指令、译码、执行
     while (ctx->pc < ctx->pc_end){
-        unsigned char op = *ctx->pc++;
-
-        (*vm_handlers[op])(ctx);
-
+        vm_Loop_impl(ctx);
         if(ctx->is_exit)
             break;
     }
 }
-
 
 static void vm_Exit(vm_Context* ctx)
 {

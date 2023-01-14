@@ -23,4 +23,5 @@
 
 #define JNIHIDE  __attribute__ ((visibility ("hidden")))
 
+
 #endif //DEXVMP_LOG_H

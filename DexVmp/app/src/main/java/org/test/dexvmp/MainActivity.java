@@ -16,6 +16,13 @@ public class MainActivity extends AppCompatActivity {
 
         TextView tv = findViewById(R.id.text_view);
         tv.setText("5 + 8 = " +  MyAdd(5, 8));
+
+        //onCreate2(savedInstanceState);
+
+    }
+
+    protected void onCreate2(Bundle savedInstanceState) {
+        ProxyApp.interface1(new Object[] {1001, this, savedInstanceState});
     }
 
     public int MyAdd(int n1, int n2) {

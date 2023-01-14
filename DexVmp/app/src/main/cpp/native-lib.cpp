@@ -5,10 +5,12 @@
 #include "utils/vm_utils.h"
 
 JNIHIDE jint JNICALL interface1(JNIEnv *env, jclass clazz, jobjectArray args);
+JNIHIDE void JNICALL interface2(JNIEnv *env, jclass clazz, jobjectArray args);
 
 JNIHIDE JNINativeMethod g_Methods[] =
 {
 "interface1", "([Ljava/lang/Object;)I", (void*)&interface1,
+"interface2", "([Ljava/lang/Object;)V", (void*)&interface2,
 };
 
 
@@ -37,6 +39,7 @@ JNIEXPORT jint JNI_OnLoad(JavaVM* vm, void* reserved)
         return result;
     }
 
+    jni_save_JavaVM(vm);
     LOGD("[%s] RegisterNatives OK result:%d", __FUNCTION__, result);
     return JNI_VERSION_1_6;
 }
@@ -47,3 +50,7 @@ JNIHIDE jint JNICALL interface1(JNIEnv *env, jclass clazz, jobjectArray args)
     return vm_Interpreter(env, clazz, args).i;
 }
 
+JNIHIDE void JNICALL interface2(JNIEnv *env, jclass clazz, jobjectArray args)
+{
+    vm_Interpreter(env, clazz, args);
+}
