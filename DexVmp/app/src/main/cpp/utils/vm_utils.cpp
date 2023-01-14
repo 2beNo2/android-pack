@@ -44,6 +44,64 @@ JNIHIDE unsigned char add_codeItem[22] = {
 };
 
 
+unsigned char onCreate_codeItem[112] = {
+        0x06, 0x00, //registers_size_
+        0x02, 0x00, //ins_size_
+        0x03, 0x00, //outs_size_
+        0x00, 0x00, //tries_size_
+        0xDA, 0x04, 0x00, 0x00,   //debug_info_off_
+        0x30, 0x00, 0x00, 0x00, //insns_size_in_code_units_
+        0x6F, 0x20, 0x03, 0x00, 0x54, 0x00,
+        0x14, 0x00, 0x1C, 0x00, 0x0B, 0x7F,
+        0x6E, 0x20, 0x12, 0x00,0x04, 0x00,
+        0x14, 0x00, 0xB0, 0x01, 0x08, 0x7F,
+        0x6E, 0x20, 0x10, 0x00, 0x04, 0x00,
+        0x0C, 0x00,
+        0x1F, 0x00, 0x04, 0x00,
+        0x22, 0x01, 0x0B, 0x00,
+        0x70, 0x10, 0x07, 0x00, 0x01, 0x00,
+        0x1A, 0x02,0x01, 0x00,
+        0x6E, 0x20, 0x09, 0x00, 0x21, 0x00,
+        0x0C, 0x01,
+        0x12, 0x52,
+        0x13, 0x03, 0x08, 0x00,
+        0x6E, 0x30, 0x0F, 0x00, 0x24, 0x03,
+        0x0A, 0x02,
+        0x6E, 0x20, 0x08, 0x00, 0x21, 0x00,
+        0x0C, 0x01,
+        0x6E, 0x10, 0x0A, 0x00, 0x01, 0x00,
+        0x0C, 0x01,
+        0x6E, 0x20, 0x01, 0x00, 0x10, 0x00,
+        0x0E, 0x00
+};
+
+/*
+ .method protected onCreate(Landroid/os/Bundle;)V
+    00000434: 6f20 0300 5400          0000: invoke-super        {p0, p1}, Landroidx/appcompat/app/AppCompatActivity;->onCreate(Landroid/os/Bundle;)V # method@0003
+    0000043a: 1400 1c00 0b7f          0003: const               v0, 0x7f0b001c
+    00000440: 6e20 1200 0400          0006: invoke-virtual      {p0, v0}, Lorg/test/dexvmp/MainActivity;->setContentView(I)V # method@0012
+    00000446: 1400 b001 087f          0009: const               v0, 0x7f0801b0
+    0000044c: 6e20 1000 0400          000c: invoke-virtual      {p0, v0}, Lorg/test/dexvmp/MainActivity;->findViewById(I)Landroid/view/View; # method@0010
+    00000452: 0c00                    000f: move-result-object  v0
+    00000454: 1f00 0400               0010: check-cast          v0, Landroid/widget/TextView; # type@0004
+    00000458: 2201 0b00               0012: new-instance        v1, Ljava/lang/StringBuilder; # type@000b
+    0000045c: 7010 0700 0100          0014: invoke-direct       {v1}, Ljava/lang/StringBuilder;-><init>()V # method@0007
+    00000462: 1a02 0100               0017: const-string        v2, "5 + 8 = " # string@0001
+    00000466: 6e20 0900 2100          0019: invoke-virtual      {v1, v2}, Ljava/lang/StringBuilder;->append(Ljava/lang/String;)Ljava/lang/StringBuilder; # method@0009
+    0000046c: 0c01                    001c: move-result-object  v1
+    0000046e: 1252                    001d: const/4             v2, 0x5
+    00000470: 1303 0800               001e: const/16            v3, 0x8
+    00000474: 6e30 0f00 2403          0020: invoke-virtual      {p0, v2, v3}, Lorg/test/dexvmp/MainActivity;->MyAdd(I, I)I # method@000f
+    0000047a: 0a02                    0023: move-result         v2
+    0000047c: 6e20 0800 2100          0024: invoke-virtual      {v1, v2}, Ljava/lang/StringBuilder;->append(I)Ljava/lang/StringBuilder; # method@0008
+    00000482: 0c01                    0027: move-result-object  v1
+    00000484: 6e10 0a00 0100          0028: invoke-virtual      {v1}, Ljava/lang/StringBuilder;->toString()Ljava/lang/String; # method@000a
+    0000048a: 0c01                    002b: move-result-object  v1
+    0000048c: 6e20 0100 1000          002c: invoke-virtual      {v0, v1}, Landroid/widget/TextView;->setText(Ljava/lang/CharSequence;)V # method@0001
+    00000492: 0e00                    002f: return-void
+.end method
+ * */
+
 
 int vm_add(vm_Context *ctx)
 {
@@ -86,6 +144,7 @@ JNIHIDE HANDLER vm_handlers[] = {
         &vm_add,
         &vm_ret_int,
 };
+
 
 static int vm_Init(JNIEnv *env, jclass clazz, jobjectArray args, vm_Context* ctx)
 {
