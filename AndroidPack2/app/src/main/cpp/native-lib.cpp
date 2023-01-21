@@ -7,10 +7,13 @@
 #include "utils/jni_utils.h"
 #include "utils/pack_utils.h"
 
+
 static jobject g_ObjContext;
+
 
 JNIHIDE void JNICALL MyApp_onCreate(JNIEnv *env, jobject thiz);
 JNIHIDE void JNICALL MyApp_attachBaseContext(JNIEnv *env, jobject thiz, jobject objContext);
+
 
 JNIHIDE JNINativeMethod g_Methods[] = {
         "attachBaseContext", "(Landroid/content/Context;)V", (void*)&MyApp_attachBaseContext,

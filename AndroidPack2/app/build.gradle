@@ -1,6 +1,8 @@
+
 plugins {
     id 'com.android.application'
 }
+
 
 android {
     compileSdk 30
@@ -39,8 +41,9 @@ android {
     buildFeatures {
         viewBinding true
     }
-    ndkVersion '25.1.8937393'
+    ndkVersion '21.4.7075529'
 }
+
 
 dependencies {
 
